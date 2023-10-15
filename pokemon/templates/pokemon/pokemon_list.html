@@ -1,0 +1,150 @@
+<!-- pokemon/templates/pokemon/pokemon_list.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포켓몬 도감</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        .pokemon-details {
+            text-align: center;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #555;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* 토글 버튼 스타일 */
+        [name^="toggle_evolution"] {
+            display: none;
+        }
+
+        [name^="toggle_evolution"] + label {
+            cursor: pointer;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            transition-duration: 0.4s;
+            overflow: hidden;
+        }
+
+        [name^="toggle_evolution"]:checked + label {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>포켓몬 도감</h1>
+
+    <div class="container">
+        <form method="GET" action="{% url 'pokemon_list' %}">
+            <select name="selected_pokemon">
+                <option value="" selected disabled>포켓몬을 선택하세요</option>
+                {% for pokemon in pokemons %}
+                    <option value="{{ pokemon.id }}">{{ pokemon.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">확인</button>
+        </form>
+
+        {% if selected_pokemon %}
+            <div class="pokemon-details">
+                <h2>
+                    {{ selected_pokemon.name }}
+                </h2>
+
+                <img src="{{ selected_pokemon.image.url }}" alt="{{ selected_pokemon.name }}">
+                <p><strong>타입:</strong> {{ selected_pokemon.type }}</p>
+                <p><strong>스킬:</strong> {{ selected_pokemon.ability }}</p>
+                <p><strong>진화:</strong> {{ selected_pokemon.evolution }}</p>
+                {% if evolution_pokemon %}
+                    <form method="GET" action="{% url 'pokemon_list' %}">
+                        <input type="hidden" name="selected_pokemon" value="{{ selected_pokemon.id }}">
+                        <input type="checkbox" name="toggle_evolution" id="toggle_evolution">
+                        <label for="toggle_evolution">진화정보 보기</label>
+                    </form>
+                    <div id="evolution_info" class="{% if not button_clicked %}hidden{% endif %}">
+                        <h3>진화: {{ evolution_pokemon.name }}</h3>
+                        <img src="{{ evolution_pokemon.image.url }}" alt="{{ evolution_pokemon.name }}">
+                        <p><strong>타입:</strong> {{ evolution_pokemon.type }}</p>
+                        <p><strong>스킬:</strong> {{ evolution_pokemon.ability }}</p>
+                        <p><strong>진화:</strong> {{ evolution_pokemon.evolution }}</p>
+                        {% if evolution_pokemon.pre_evolution %}
+                            <form method="GET" action="{% url 'pokemon_list' %}">
+                                <input type="hidden" name="selected_pokemon" value="{{ evolution_pokemon.pre_evolution }}">
+                                <input type="checkbox" name="toggle_pre_evolution" id="toggle_pre_evolution">
+                                <label for="toggle_pre_evolution">Toggle Pre-evolution</label>
+                            </form>
+                            <div id="pre_evolution_info" class="{% if not button_pre_clicked %}hidden{% endif %}">
+                                <h3>진화 이전: {{ pre_evolution_pokemon.name }}</h3>
+                                <img src="{{ pre_evolution_pokemon.image.url }}" alt="{{ pre_evolution_pokemon.name }}">
+                                <p><strong>타입:</strong> {{ pre_evolution_pokemon.type }}</p>
+                                <p><strong>능력:</strong> {{ pre_evolution_pokemon.ability }}</p>
+                                <p><strong>진화:</strong> {{ pre_evolution_pokemon.evolution }}</p>
+                            </div>
+                        {% endif %}
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const toggleEvolutionCheckbox = document.getElementById('toggle_evolution');
+                                const evolutionInfo = document.getElementById('evolution_info');
+
+                                toggleEvolutionCheckbox.addEventListener('change', function() {
+                                    evolutionInfo.classList.toggle('hidden', !toggleEvolutionCheckbox.checked);
+                                });
+                            });
+                        </script>
+                    </div>
+                {% elif selected_pokemon.evolution %}
+                    <form method="GET" action="{% url 'pokemon_list' %}">
+                        <input type="hidden" name="selected_pokemon" value="{{ selected_pokemon.evolution }}">
+                        <input type="checkbox" name="toggle_evolution" id="toggle_evolution">
+                        <label for="toggle_evolution">진화정보 보기</label>
+                    </form>
+                {% else %}
+                    <p>진화 정보 없음</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
